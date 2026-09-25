@@ -85,3 +85,6 @@ desktop.ini
 *.db
 *.pid
 *.seed
+
+# ===== 一键本地环境编排（dev.sh）的运行产物：日志、pid、get-pip 缓存 =====
+.dev/

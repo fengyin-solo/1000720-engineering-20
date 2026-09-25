@@ -24,6 +24,43 @@
 
 ## 启动
 
+### 一键起整套环境（推荐新同事使用）
+
+```bash
+./dev.sh up        # 或 make up
+```
+
+这一条命令会按顺序做完并打印每一步结论，失败会明确指出卡在哪一步、原因和日志位置：
+
+1. 检查 `python3` / `node` / `npm` 是否就绪、端口是否被占；
+2. 准备后端依赖：在 `backend/.venv` 建虚拟环境并装 `requirements.txt`。
+   已有的 venv 不可用时（换过机器、缺 pip 等）会自动重建；系统缺 `ensurepip`
+   （Debian/Ubuntu 没装 `python3-venv`）时会自动改用 `--without-pip` + `get-pip.py` 引导；
+3. 准备前端依赖：`npm install`。检测到 `node_modules` 是别的平台装的、vite 跑不起来时
+   （典型表现为缺 `@rollup/rollup-<平台>` 原生包），会自动删掉 `node_modules` 与
+   `package-lock.json` 按当前平台重装；
+4. 离线校验示例数据：养护计划与道路/桥梁/隧道等养护对象必须齐全（`scripts/check_seed.py`）；
+5. 启动后端，轮询 `GET /api/health`，并确认 18 个业务模块已加载；
+6. 启动前端 vite，确认页面可访问、`/api` 代理能打通后端，并冒烟验证
+   `GET /api/plan` 真的能取到养护计划示例数据。
+
+全部通过后会打印「环境已就绪，可以开工」和前后端地址。任何一步失败都会立即退出、
+给出关键报错与完整日志路径，修好后直接重跑 `./dev.sh up` 即可，已完成的步骤会复用。
+
+辅助命令：
+
+```bash
+./dev.sh status          # 只看前后端与代理当前是否可用，不改动任何东西
+./dev.sh logs [be|fe]    # 跟踪后端/前端日志（.dev/logs/ 下）
+./dev.sh down            # 停掉由脚本启动的前后端（手工启动的不受影响）
+./dev.sh up --fresh      # 删除已有 venv/node_modules 全部重装重启
+BACKEND_PORT=9000 ./dev.sh up   # 默认端口被占时换端口
+```
+
+脚本运行期产物（日志、pid 等）统一放在 `.dev/`（已在 `.gitignore` 中忽略）；
+依赖仍装在原位置（`backend/.venv`、`frontend/node_modules`），
+下面的手工启动方式和目录结构完全不受影响。
+
 ### 后端
 
 ```bash
