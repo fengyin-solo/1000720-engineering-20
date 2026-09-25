@@ -18,11 +18,33 @@
 │   ├── app/routers/          每个业务模块一组接口
 │   ├── app/services/         业务规则与状态流转
 │   └── app/store.py          内存数据仓库与示例数据
+├── scripts/                  一键起环境脚本（dev-up.sh / dev-down.sh）
 ├── .gitignore
 └── docker-compose.yml
 ```
 
-## 启动
+## 一键起环境（新同事推荐）
+
+```bash
+./scripts/dev-up.sh    # 或 make up
+```
+
+一条命令串起整个流程，跑完直接给出「可以开工 / 不能开工」的结论：
+
+1. 环境预检：python3 ≥ 3.10、node ≥ 18、npm、curl 是否齐全
+2. 后端依赖：检查 `backend/.venv` 是否可用（损坏或在别的机器上生成的会自动重建），再 `pip install`
+3. 前端依赖：`npm install`（存在 `package-lock.json` 时改用 `npm ci`）
+4. 示例数据：校验养护计划、养护对象等内置示例数据已就绪
+5. 启动后端：uvicorn 后台运行，等待 `/api/health` 通过
+6. 启动前端：vite dev server 后台运行，固定 5173 端口
+7. 可用性检查：后端健康、养护计划数据、前端页面、`/api` 代理四项全过才算完
+
+- 每步的详细输出在 `logs/dev-up/steps/`，服务日志在 `logs/dev-up/backend.log`、`logs/dev-up/frontend.log`（`logs/` 已被 git 忽略）。
+- 失败时会指出卡在哪一步、什么原因，并附该步骤日志末尾；修好后重跑同一条命令即可，已完成的步骤会自动复用。
+- 已经在运行的服务（包括按下面手工方式启动的）会被识别并复用，不会重复起。
+- 停止环境：`./scripts/dev-down.sh`（或 `make down`），只停 dev-up 拉起的进程，不误伤手工启动的服务。
+
+## 启动（手工方式，照旧可用）
 
 ### 后端
 
